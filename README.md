@@ -10,7 +10,7 @@ Aplicação web estática para conferir e corrigir planilhas OGU de empreendimen
 
 ## Uso
 
-Envie um `.xlsx` ou `.xls` contendo os 50 cabeçalhos oficiais na primeira linha da primeira aba. Ao concluir, baixe o arquivo: os dados são corrigidos quando a regra permitir e são acrescentadas as abas `LOG RESUMO`, `LOG DETALHAMENTO` e `ALTERAÇÕES`.
+Envie um `.xlsx` ou `.xls` contendo os 50 cabeçalhos oficiais na primeira linha da primeira aba. Ao concluir, baixe o arquivo: os dados são corrigidos quando a regra permitir e são acrescentadas as abas `LOG RESUMO`, `LOG DETALHAMENTO`, `ALTERAÇÕES` e `REGRAS`. No log detalhado, a identificação é feita pelo Código da Operação SNH.
 
 ## Observações
 
