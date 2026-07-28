@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conferidor OGU</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="form.css" />
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   </head>
   <body>
@@ -16,10 +17,15 @@
       </section>
 
       <section class="card">
+        <label class="field-label" for="tipo-arquivo">Formato do arquivo de origem</label>
+        <select id="tipo-arquivo">
+          <option value="xlsx">Planilha Excel (.xlsx ou .xls)</option>
+          <option value="txt">Arquivo TXT exportado (.txt)</option>
+        </select>
         <label class="drop-zone" for="arquivo">
           <span class="drop-icon">↑</span>
           <strong>Selecione a planilha Excel</strong>
-          <span>Formatos aceitos: .xlsx e .xls</span>
+          <span id="formatos-aceitos">Formatos aceitos: .xlsx e .xls</span>
           <input id="arquivo" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
         </label>
         <p id="arquivo-nome" class="file-name" aria-live="polite">Nenhum arquivo selecionado.</p>
