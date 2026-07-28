@@ -6,7 +6,6 @@ const COL = Object.fromEntries(COLUMNS.map((x, i) => [x, i]));
 const K = (n) => COLUMNS.find(x => x.includes(`_${String(n).padStart(2, '0')}_`));
 const TEXT = [4,7,8,10,11,12,13,14,15,27,28,29,32,34,35,36,37,40,41,42,44,45,47,48];
 const NUM = [3,5,6,17,18,19,20,21,22,23,24,25,30,31,33,38,39,46,49,50,51];
-const NUMERIC_HEADERS = new Set(NUM.map(K));
 const IMP = 'IMPEDITIVO', ACE = 'ACEITÁVEL';
 const ERR_VALUES = ['#N/D','#NOME?','#VALOR!','#REF!','#DIV/0!'];
 const allowed = {
@@ -32,9 +31,6 @@ const same = (a,b) => Math.abs((Number(a)||0)-(Number(b)||0)) < 0.00001;
 const asText = v => empty(v) ? '' : String(v).trim();
 const normalized = v => asText(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 function num(v) { if (typeof v === 'number') return v; if (empty(v)) return null; const n = Number(String(v).replace(/\./g,'').replace(',', '.')); return Number.isFinite(n) ? n : NaN; }
-function parseTxt(text) { const rows=[], row=[]; let value='', quoted=false; for(let i=0;i<text.length;i++){const ch=text[i]; if(ch==='"'){if(quoted&&text[i+1]==='"'){value+='"';i++;}else quoted=!quoted;}else if(ch===';'&&!quoted){row.push(value);value='';}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(value);if(row.some(v=>v!==''))rows.push(row.splice(0));value='';}else value+=ch;} row.push(value);if(row.some(v=>v!==''))rows.push(row);return rows; }
-function decodeTxt(buffer) { const utf8=new TextDecoder('utf-8').decode(buffer); return utf8.includes('Ã') ? new TextDecoder('windows-1252').decode(buffer) : utf8; }
-function coerceTxtValue(header, value) { if (empty(value) || header===K(9) || header===K(49)) return value; if (!NUMERIC_HEADERS.has(header)) return value; const parsed=num(value); return Number.isFinite(parsed) ? parsed : value; }
 function date(v) { if (v instanceof Date && !isNaN(v)) return v; if (typeof v === 'number') return XLSX.SSF.parse_date_code(v) ? new Date(Date.UTC(1899,11,30 + v)) : null; if (empty(v)) return null; const m=String(v).trim().match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/); if (!m) return null; const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1])); return isNaN(d)||d.getDate()!=+m[1] ? null : d; }
 function fmtDate(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
 function logChange(changes, line, column, from, to, why) { changes.push([line, `${column}: “${from}” → “${to}”`, why]); }
@@ -88,21 +84,8 @@ function createLogSheets(wb, logs, changes) {
   const grouped=new Map();logs.forEach(x=>{const k=`${x.rule}|${x.level}`;grouped.set(k,(grouped.get(k)||0)+1)}); const summary=[['Regra não atendida','Quantidade de linhas','Classificação'],...Array.from(grouped,([k,count])=>{const [rule,level]=k.split('|');return [rule,count,level]})]; const detail=[['Regra não atendida','Linha','Classificação'],...logs.map(x=>[x.rule,x.line,x.level])]; const changeRows=[['Número da linha alterada','Alteração realizada','Justificativa'],...changes];
   [['LOG RESUMO',summary],['LOG DETALHAMENTO',detail],['ALTERAÇÕES',changeRows]].forEach(([name,rows])=>{const ws=XLSX.utils.aoa_to_sheet(rows);styleSheet(ws,rows);XLSX.utils.book_append_sheet(wb,ws,name);});
 }
-function processExcelFile() {
+function processFile() {
   const status=$('status'); if(!selectedFile)return; try { status.className='status'; status.textContent='Lendo e conferindo a planilha…'; const reader=new FileReader(); reader.onload=e=>{try { const wb=XLSX.read(e.target.result,{type:'array',cellDates:false,raw:true,cellStyles:true}); const ws=wb.Sheets[wb.SheetNames[0]]; const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true}); const headers=data[0]||[]; const missing=COLUMNS.filter(h=>!headers.includes(h)); if(missing.length)throw new Error(`A primeira aba não contém todos os cabeçalhos oficiais. Faltam: ${missing.join(', ')}.`); const ordered=data.slice(1).filter(r=>r.some(v=>!empty(v))).map(r=>COLUMNS.map(h=>r[headers.indexOf(h)]??'')); const logs=[],changes=[]; ordered.forEach((r,i)=>checkRow(r,i+2,logs,changes)); const clean=XLSX.utils.aoa_to_sheet([COLUMNS,...ordered]); clean['!cols']=COLUMNS.map(()=>({wch:18})); wb.Sheets[wb.SheetNames[0]]=clean; createLogSheets(wb,logs,changes); outputWorkbook=wb; outputName=selectedFile.name.replace(/\.(xlsx|xls)$/i,'')+'_conferido.xlsx'; const imp=logs.filter(x=>x.level===IMP).length, ace=logs.length-imp; $('linhas').textContent=ordered.length;$('impeditivos').textContent=imp;$('aceitaveis').textContent=ace;$('alteracoes').textContent=changes.length;$('resultado').classList.remove('hidden');$('baixar').classList.remove('hidden');status.className='status ok';status.textContent='Conferência concluída. Baixe o arquivo para acessar os relatórios.';}catch(err){status.className='status error';status.textContent=err.message||'Não foi possível processar o arquivo.';}}; reader.readAsArrayBuffer(selectedFile);}catch(err){status.className='status error';status.textContent=err.message;}
 }
-function processTxtFile() {
-  const status=$('status'); if(!selectedFile)return; status.className='status'; status.textContent='Lendo e conferindo o arquivo TXT…';
-  const reader=new FileReader(); reader.onload=e=>{try {
-    const data=parseTxt(decodeTxt(e.target.result)); const headers=data[0]||[]; const missing=COLUMNS.filter(h=>!headers.includes(h));
-    if(missing.length)throw new Error(`O TXT não contém todos os cabeçalhos oficiais. Faltam: ${missing.join(', ')}.`);
-    const ordered=data.slice(1).filter(r=>r.some(v=>!empty(v))).map(r=>COLUMNS.map(h=>coerceTxtValue(h,r[headers.indexOf(h)]??''))); const logs=[],changes=[]; referenceBase=undefined; ordered.forEach((r,i)=>checkRow(r,i+2,logs,changes));
-    const wb=XLSX.utils.book_new(), clean=XLSX.utils.aoa_to_sheet([COLUMNS,...ordered]); clean['!cols']=COLUMNS.map(()=>({wch:18})); XLSX.utils.book_append_sheet(wb,clean,'DADOS OGU'); createLogSheets(wb,logs,changes);
-    outputWorkbook=wb; outputName=selectedFile.name.replace(/\.txt$/i,'')+'_conferido.xlsx'; const imp=logs.filter(x=>x.level===IMP).length, ace=logs.length-imp;
-    $('linhas').textContent=ordered.length;$('impeditivos').textContent=imp;$('aceitaveis').textContent=ace;$('alteracoes').textContent=changes.length;$('resultado').classList.remove('hidden');$('baixar').classList.remove('hidden');status.className='status ok';status.textContent='Conferência concluída. Baixe o arquivo Excel para acessar os relatórios.';
-  }catch(err){status.className='status error';status.textContent=err.message||'Não foi possível processar o TXT.';}}; reader.readAsArrayBuffer(selectedFile);
-}
-function atualizarFormato() { const txt=$('tipo-arquivo').value==='txt'; $('arquivo').accept=txt?'.txt,text/plain':'.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel'; document.querySelector('.drop-zone strong').textContent=txt?'Selecione o arquivo TXT':'Selecione a planilha Excel'; $('formatos-aceitos').textContent=txt?'Formato aceito: .txt (separado por ponto e vírgula)':'Formatos aceitos: .xlsx e .xls'; selectedFile=undefined;$('arquivo').value='';$('arquivo-nome').textContent='Nenhum arquivo selecionado.';$('processar').disabled=true;$('resultado').classList.add('hidden'); }
-$('tipo-arquivo').addEventListener('change',atualizarFormato);
 $('arquivo').addEventListener('change',e=>{selectedFile=e.target.files[0];referenceBase=undefined;$('arquivo-nome').textContent=selectedFile?selectedFile.name:'Nenhum arquivo selecionado.';$('processar').disabled=!selectedFile;$('resultado').classList.add('hidden');});
-$('processar').addEventListener('click',()=> $('tipo-arquivo').value==='txt' ? processTxtFile() : processExcelFile()); $('baixar').addEventListener('click',()=>XLSX.writeFile(outputWorkbook,outputName,{cellStyles:true}));
+$('processar').addEventListener('click',processFile); $('baixar').addEventListener('click',()=>XLSX.writeFile(outputWorkbook,outputName,{cellStyles:true}));

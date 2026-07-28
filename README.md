@@ -10,7 +10,7 @@ Aplicação web estática para conferir e corrigir planilhas OGU de empreendimen
 
 ## Uso
 
-Escolha o formato de origem e envie um `.xlsx`, `.xls` ou o `.txt` exportado pelo sistema (separado por ponto e vírgula, com campos entre aspas). O arquivo deve conter os 50 cabeçalhos oficiais na primeira linha. Ao concluir, baixe o Excel: os dados são corrigidos quando a regra permitir e são acrescentadas as abas `LOG RESUMO`, `LOG DETALHAMENTO` e `ALTERAÇÕES`.
+Envie um `.xlsx` ou `.xls` contendo os 50 cabeçalhos oficiais na primeira linha da primeira aba. Ao concluir, baixe o arquivo: os dados são corrigidos quando a regra permitir e são acrescentadas as abas `LOG RESUMO`, `LOG DETALHAMENTO` e `ALTERAÇÕES`.
 
 ## Observações
 
