@@ -17,3 +17,4 @@ Envie um `.xlsx` ou `.xls` contendo os 50 cabeçalhos oficiais na primeira linha
 - O arquivo usa a biblioteca SheetJS carregada pelo CDN; por isso, é necessária conexão com a internet para abrir a página.
 - Linhas reportadas nos logs correspondem à linha da planilha Excel, incluindo o cabeçalho na linha 1.
 - O nº 43 não existe na especificação recebida. Por isso, há 50 cabeçalhos esperados, das colunas 01 a 51, exceto a 43.
+- A versão atual considera as novas classificações explícitas **ACEITÁVEL**, aceita variações apenas de caixa e acentuação nas listas indicadas e aplica as novas conversões de zero para vazio.
