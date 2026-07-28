@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conferidor OGU</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <main class="container">
+      <section class="hero">
+        <p class="eyebrow">MINISTÉRIO DAS CIDADES</p>
+        <h1>Conferidor OGU</h1>
+        <p>Envie a planilha Excel de empreendimentos. A conferência e as correções ocorrem no seu navegador; nenhum dado é enviado a um servidor.</p>
+      </section>
+
+      <section class="card">
+        <label class="drop-zone" for="arquivo">
+          <span class="drop-icon">↑</span>
+          <strong>Selecione a planilha Excel</strong>
+          <span>Formatos aceitos: .xlsx e .xls</span>
+          <input id="arquivo" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+        </label>
+        <p id="arquivo-nome" class="file-name" aria-live="polite">Nenhum arquivo selecionado.</p>
+        <button id="processar" type="button" disabled>Conferir e gerar relatório</button>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section id="resultado" class="card hidden" aria-live="polite">
+        <h2>Resultado da conferência</h2>
+        <div class="metrics">
+          <div><span id="linhas">0</span><small>linhas analisadas</small></div>
+          <div class="danger"><span id="impeditivos">0</span><small>erros impeditivos</small></div>
+          <div class="warning"><span id="aceitaveis">0</span><small>erros aceitáveis</small></div>
+          <div><span id="alteracoes">0</span><small>alterações aplicadas</small></div>
+        </div>
+        <button id="baixar" type="button" class="secondary hidden">Baixar Excel conferido</button>
+      </section>
+
+      <section class="notice">
+        <h2>O arquivo devolvido</h2>
+        <p>Preserva a aba de dados, com correções automáticas aplicáveis, e adiciona as abas <strong>LOG RESUMO</strong>, <strong>LOG DETALHAMENTO</strong> e <strong>ALTERAÇÕES</strong>.</p>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
