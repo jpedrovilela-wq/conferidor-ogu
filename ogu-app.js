@@ -35,7 +35,18 @@ const empty = v => v === undefined || v === null || String(v).trim() === '';
 const same = (a,b) => Math.abs((Number(a)||0)-(Number(b)||0)) < 0.00001;
 const asText = v => empty(v) ? '' : String(v).trim();
 const normalized = v => asText(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-function num(v) { if (typeof v === 'number') return v; if (empty(v)) return null; const n = Number(String(v).replace(/\./g,'').replace(',', '.')); return Number.isFinite(n) ? n : NaN; }
+function num(v, decimalDot = false) {
+  if (typeof v === 'number') return v;
+  if (empty(v)) return null;
+  const text = String(v).trim().replace(/\s/g, '');
+  const comma = text.lastIndexOf(','), dot = text.lastIndexOf('.');
+  let normalizedValue = text;
+  if (comma >= 0 && dot >= 0) normalizedValue = comma > dot ? text.replace(/\./g, '').replace(',', '.') : text.replace(/,/g, '');
+  else if (comma >= 0) normalizedValue = text.replace(',', '.');
+  else if (!decimalDot && ((text.match(/\./g) || []).length > 1 || /^-?\d{1,3}\.\d{3}$/.test(text))) normalizedValue = text.replace(/\./g, '');
+  const result = Number(normalizedValue);
+  return Number.isFinite(result) ? result : NaN;
+}
 function date(v) { if (v instanceof Date && !isNaN(v)) return v; if (typeof v === 'number') return XLSX.SSF.parse_date_code(v) ? new Date(Date.UTC(1899,11,30 + v)) : null; if (empty(v)) return null; const m=String(v).trim().match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/); if (!m) return null; const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1])); return isNaN(d)||d.getDate()!=+m[1] ? null : d; }
 function fmtDate(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
 function logChange(changes, line, column, from, to, why) { changes.push([line, `${column}: “${from}” → “${to}”`, why]); }
@@ -96,3 +107,112 @@ function processFile() {
 }
 $('arquivo').addEventListener('change',e=>{selectedFile=e.target.files[0];referenceBase=undefined;$('arquivo-nome').textContent=selectedFile?selectedFile.name:'Nenhum arquivo selecionado.';$('processar').disabled=!selectedFile;$('resultado').classList.add('hidden');});
 $('processar').addEventListener('click',processFile); $('baixar').addEventListener('click',()=>XLSX.writeFile(outputWorkbook,outputName,{cellStyles:true}));
+
+// A rotina OGU recebe o CSV de origem e devolve somente as abas de análise.
+function detectDelimiter(text) {
+  const firstLine = text.replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || '';
+  return (firstLine.match(/;/g) || []).length >= (firstLine.match(/,/g) || []).length ? ';' : ',';
+}
+function parseOguCsv(text) {
+  const delimiter = detectDelimiter(text);
+  const rows = [], row = [];
+  let field = '', quoted = false;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (char === '"') {
+      if (quoted && text[index + 1] === '"') { field += '"'; index++; }
+      else quoted = !quoted;
+    } else if (char === delimiter && !quoted) {
+      row.push(field); field = '';
+    } else if ((char === '\n' || char === '\r') && !quoted) {
+      if (char === '\r' && text[index + 1] === '\n') index++;
+      row.push(field); rows.push(row.splice(0)); field = '';
+    } else field += char;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  if (rows.length) rows[0][0] = String(rows[0][0] || '').replace(/^\uFEFF/, '');
+  return rows;
+}
+function hasDistinctNumericFormat(value, header) {
+  if (header === K(50) || header === K(51) || empty(value)) return false;
+  const raw = asText(value);
+  return Number.isFinite(num(raw)) && /[.,]/.test(raw);
+}
+function createLogSheets(wb, logs, changes) {
+  const grouped = new Map();
+  logs.forEach(log => {
+    const key = `${log.rule}|${log.level}`;
+    grouped.set(key, (grouped.get(key) || 0) + 1);
+  });
+  const summary = [['Regra não atendida','Quantidade de linhas','Classificação'], ...Array.from(grouped, ([key,count]) => {
+    const [rule, level] = key.split('|');
+    return [rule, count, level];
+  })];
+  const detail = [['Regra não atendida','Código da Operação SNH','Classificação'], ...logs.map(log => [log.rule, log.operation, log.level])];
+  const changesRows = [['Número da linha alterada','Alteração identificada','Justificativa'], ...changes];
+  const rulesRows = [['Número da regra','Coluna','Regra'], ...RULES_SHEET.map((rule, index) => [index + 1, ...rule])];
+  [['LOG RESUMO',summary],['LOG DETALHAMENTO',detail],['ALTERAÇÕES',changesRows],['REGRAS',rulesRows]].forEach(([name, rows]) => {
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    styleSheet(ws, rows);
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  });
+}
+function processFile() {
+  const status = $('status');
+  if (!selectedFile) return;
+  status.className = 'status';
+  status.textContent = 'Lendo e conferindo o CSV…';
+  const reader = new FileReader();
+  reader.onload = event => {
+    try {
+      referenceBase = undefined;
+      operationCodes.clear();
+      const data = parseOguCsv(event.target.result);
+      const headers = data[0] || [];
+      const missing = COLUMNS.filter(header => !headers.includes(header));
+      if (missing.length) throw new Error(`O CSV não contém todos os cabeçalhos oficiais. Faltam: ${missing.join(', ')}.`);
+      const numericHeaders = new Set(NUM.filter(column => column !== 49).map(K));
+      const numericColumns = new Set(NUM.map(K));
+      const formatWarnings = [];
+      const ordered = data.slice(1)
+        .filter(row => row.some(value => !empty(value)))
+        .map((row, rowIndex) => COLUMNS.map(header => {
+          const value = row[headers.indexOf(header)] ?? '';
+          const numericValue = num(value, header === K(50) || header === K(51));
+          if (numericColumns.has(header) && hasDistinctNumericFormat(value, header)) {
+            formatWarnings.push({ line: rowIndex + 2, column: header, value: asText(value) });
+          }
+          return numericHeaders.has(header) && !empty(value) && Number.isFinite(numericValue) ? numericValue : value;
+        }));
+      const logs = [], changes = [];
+      ordered.forEach((row, index) => checkRow(row, index + 2, logs, changes));
+      formatWarnings.forEach(warning => makeLog(
+        logs,
+        warning.line,
+        `${warning.column}: número válido identificado com formato diferente.`,
+        ACE
+      ));
+      const report = XLSX.utils.book_new();
+      createLogSheets(report, logs, changes);
+      outputWorkbook = report;
+      outputName = selectedFile.name.replace(/\.csv$/i, '') + '_relatorio_ogu.xlsx';
+      const impeditivos = logs.filter(log => log.level === IMP).length;
+      $('linhas').textContent = ordered.length.toLocaleString('pt-BR');
+      $('impeditivos').textContent = impeditivos.toLocaleString('pt-BR');
+      $('aceitaveis').textContent = (logs.length - impeditivos).toLocaleString('pt-BR');
+      $('alteracoes').textContent = changes.length.toLocaleString('pt-BR');
+      $('resultado').classList.remove('hidden');
+      $('baixar').classList.remove('hidden');
+      status.className = 'status ok';
+      status.textContent = 'Conferência concluída. O Excel contém somente as abas de análise.';
+    } catch (error) {
+      status.className = 'status error';
+      status.textContent = error.message || 'Não foi possível processar o CSV.';
+    }
+  };
+  reader.onerror = () => {
+    status.className = 'status error';
+    status.textContent = 'Não foi possível ler o CSV selecionado.';
+  };
+  reader.readAsText(selectedFile, 'utf-8');
+}

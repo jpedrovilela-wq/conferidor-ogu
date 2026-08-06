@@ -6,7 +6,7 @@ Aplicação web estática para conferir arquivos de empreendimentos dos grupos *
 
 Publique os arquivos no GitHub Pages ou abra-os por um servidor HTTP local. Na página inicial, escolha o grupo de dados:
 
-- **OGU:** envie um arquivo `.xlsx` ou `.xls`. O arquivo resultante preserva os dados e inclui os relatórios de conferência.
+- **OGU:** envie o CSV de empreendimentos. O Excel resultante contém somente os relatórios de conferência, sem reproduzir os dados originais.
 - **FGTS:** envie o CSV separado por ponto e vírgula. O relatório é gerado em Excel com as abas `LOG RESUMO`, `LOG DETALHAMENTO` e `REGRAS APLICADAS`.
 
 Os dados enviados não são transferidos para servidor algum. A conferência ocorre no próprio navegador.

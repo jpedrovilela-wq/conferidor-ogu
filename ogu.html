@@ -12,15 +12,15 @@
       <section class="hero">
         <p class="eyebrow">MINISTÉRIO DAS CIDADES</p>
         <h1>Conferidor OGU</h1>
-        <p>Envie a planilha Excel de empreendimentos. A conferência e as correções ocorrem no seu navegador; nenhum dado é enviado a um servidor.</p>
+        <p>Envie o CSV de empreendimentos. A conferência ocorre no navegador e nenhum dado é enviado a um servidor.</p>
       </section>
 
       <section class="card">
         <label class="drop-zone" for="arquivo">
           <span class="drop-icon">↑</span>
-          <strong>Selecione a planilha Excel</strong>
-          <span>Formatos aceitos: .xlsx e .xls</span>
-          <input id="arquivo" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+          <strong>Selecione o arquivo CSV</strong>
+          <span>Formato aceito: .csv, separado por ponto e vírgula ou vírgula</span>
+          <input id="arquivo" type="file" accept=".csv,text/csv" />
         </label>
         <p id="arquivo-nome" class="file-name" aria-live="polite">Nenhum arquivo selecionado.</p>
         <button id="processar" type="button" disabled>Conferir e gerar relatório</button>
@@ -33,14 +33,14 @@
           <div><span id="linhas">0</span><small>linhas analisadas</small></div>
           <div class="danger"><span id="impeditivos">0</span><small>erros impeditivos</small></div>
           <div class="warning"><span id="aceitaveis">0</span><small>apontamentos de atenção</small></div>
-          <div><span id="alteracoes">0</span><small>alterações aplicadas</small></div>
+          <div><span id="alteracoes">0</span><small>correções identificadas</small></div>
         </div>
-        <button id="baixar" type="button" class="secondary hidden">Baixar Excel conferido</button>
+        <button id="baixar" type="button" class="secondary hidden">Baixar relatório Excel</button>
       </section>
 
       <section class="notice">
         <h2>O arquivo devolvido</h2>
-        <p>Preserva a aba de dados, com correções automáticas aplicáveis, e adiciona as abas <strong>LOG RESUMO</strong>, <strong>LOG DETALHAMENTO</strong>, <strong>ALTERAÇÕES</strong> e <strong>REGRAS</strong>.</p>
+        <p>O relatório não reproduz os dados do CSV original. Ele contém somente as abas <strong>LOG RESUMO</strong>, <strong>LOG DETALHAMENTO</strong>, <strong>ALTERAÇÕES</strong> e <strong>REGRAS</strong>.</p>
       </section>
     </main>
     <script src="ogu-app.js"></script>
