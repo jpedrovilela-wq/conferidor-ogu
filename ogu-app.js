@@ -253,11 +253,90 @@ function createLogSheets(wb, logs, changes) {
   const grouped=new Map();logs.forEach(x=>{const k=`${x.rule}|${x.level}`;grouped.set(k,(grouped.get(k)||0)+1)}); const summary=[['Regra não atendida','Quantidade de linhas','Classificação'],...Array.from(grouped,([k,count])=>{const [rule,level]=k.split('|');return [rule,count,level]})]; const detail=[['Regra não atendida','Código da Operação SNH','Classificação'],...logs.map(x=>[x.rule,x.operation,x.level])]; const changeRows=[['Número da linha alterada','Alteração realizada','Justificativa'],...changes]; const rulesRows=[['Número da regra','Coluna','Regra'],...RULES_SHEET.map((rule,index)=>[index+1,...rule])];
   [['LOG RESUMO',summary],['LOG DETALHAMENTO',detail],['ALTERAÇÕES',changeRows],['REGRAS',rulesRows]].forEach(([name,rows])=>{const ws=XLSX.utils.aoa_to_sheet(rows);styleSheet(ws,rows);XLSX.utils.book_append_sheet(wb,ws,name);});
 }
+function incidentHeaders(rule) {
+  const direct = COLUMNS.filter(header => rule.includes(header));
+  if (direct.length) return direct;
+  const mappings = [
+    [/Data de Referência/, [1]], [/Data de Geração/, [2]], [/Código IBGE/, [3]], [/Nome do Município/, [4]], [/Código da Operação SNH/, [5]], [/Código da Operação AF/, [6]], [/CNPJ/, [9]], [/Percentual de obra/, [17]],
+    [/Valor Contratado Original/, [18]], [/Aporte Adicional/, [19]], [/Valor Contratado Total/, [20]], [/Valor Desembolsado/, [21]], [/Valor médio por UH/, [20,22]],
+    [/Quantidade de UH Contratadas|Entregues \+ distratadas \+ vigentes/, [22,23,24,25]], [/Quantidade de UH Entregues/, [23]], [/Quantidade de UH Distratadas|Empreendimento Distratado/, [24]], [/Quantidade de UH Vigentes/, [25]],
+    [/Data da Contratação/, [16]], [/Data de Término/, [26]], [/Sigla da UF/, [27]], [/UF /, [28]], [/Região/, [29]], [/UH Vigentes em Janeiro/, [30]], [/UH Entregues no Ano/, [31]], [/Situação em Janeiro/, [32]], [/Desembolsado no Ano/, [33]], [/Detalhamento em Janeiro/, [34]], [/Situação da Obra Agrupada/, [35]], [/Vigente/, [36]], [/Novo MCMV/, [37]], [/Entregues em 2023/, [38]], [/Vigentes em Janeiro de 2023/, [39]], [/Situação Agrupada em Janeiro de 2023/, [42]], [/Logradouro/, [45]], [/Número do Imóvel/, [46]], [/Complemento/, [47]], [/Bairro/, [48]], [/CEP/, [49]], [/Latitude/, [50]], [/Longitude/, [51]]
+  ];
+  const match = mappings.find(([pattern]) => pattern.test(rule));
+  return match ? match[1].map(K) : ['Cabeçalho a identificar'];
+}
+function annotateOguRule(rule) {
+  const labels = [['Data de Referência',1],['Data de Geração',2],['Código IBGE',3],['Nome do Município',4],['Código da Operação SNH',5],['Código da Operação AF',6],['Nome AF',7],['CNPJ',9],['Percentual de obra',17],['Valor Contratado Original',18],['Valor do Aporte Adicional',19],['Valor Contratado Total',20],['Valor Desembolsado',21],['Quantidade de UH Contratadas',22],['Quantidade de UH Entregues',23],['Quantidade de UH Distratadas',24],['Quantidade de UH Vigentes',25],['Data da Contratação',16],['Data de Término',26],['Sigla da UF',27],['UF',28],['Região',29],['UH Vigentes em Janeiro',30],['UH Entregues no Ano de Referência',31],['Situação em Janeiro de 2023',40],['Detalhamento em Janeiro de 2023',41],['Situação Agrupada em Janeiro de 2023',42],['Situação em Janeiro',32],['Desembolsado no Ano de Referência',33],['Detalhamento em Janeiro',34],['Situação da Obra Agrupada',35],['Vigente em Janeiro de 2023',44],['Vigente',36],['Novo MCMV',37],['Quantidade Entregues em 2023',38],['UH Vigentes em Janeiro de 2023',39],['Logradouro',45],['Número do Imóvel',46],['Complemento',47],['Bairro',48],['CEP',49],['Latitude',50],['Longitude',51]];
+  let annotated = rule;
+  labels.sort((a,b) => b[0].length - a[0].length).forEach(([label, number]) => {
+    const expression = new RegExp(`${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\s*\\()`, 'gi');
+    annotated = annotated.replace(expression, match => `${match} (${K(number)})`);
+  });
+  return annotated;
+}
+const OGU_EMAIL_LABELS = {
+  [K(1)]:'Data de Referência',[K(2)]:'Data de Geração',[K(3)]:'Código IBGE',[K(4)]:'Nome do Município',[K(5)]:'Código da Operação SNH',[K(6)]:'Código da Operação AF',[K(7)]:'Nome do Agente Financeiro',[K(8)]:'Nome da Construtora ou Entidade',[K(9)]:'CNPJ',[K(10)]:'Nome do Empreendimento',[K(11)]:'Programa',[K(12)]:'Faixa',[K(13)]:'Modalidade',[K(14)]:'Situação do Empreendimento',[K(15)]:'Detalhamento da Situação da Obra',[K(16)]:'Data da Contratação',[K(17)]:'Percentual de Obra',[K(18)]:'Valor Contratado Original',[K(19)]:'Valor do Aporte Adicional',[K(20)]:'Valor Contratado Total',[K(21)]:'Valor Desembolsado',[K(22)]:'Quantidade de UH Contratadas',[K(23)]:'Quantidade de UH Entregues',[K(24)]:'Quantidade de UH Distratadas',[K(25)]:'Quantidade de UH Vigentes',[K(26)]:'Data de Término',[K(27)]:'Sigla da UF',[K(28)]:'UF',[K(29)]:'Região',[K(30)]:'UH Vigentes em Janeiro do Ano de Referência',[K(31)]:'UH Entregues no Ano de Referência',[K(32)]:'Situação em janeiro do ano de referência',[K(33)]:'Valor Desembolsado no Ano de Referência',[K(34)]:'Detalhamento da Situação em Janeiro do Ano de Referência',[K(35)]:'Situação da Obra Agrupada',[K(36)]:'Booleano: Vigente',[K(37)]:'Booleano: Novo MCMV',[K(38)]:'Quantidade de UH Entregues em 2023',[K(39)]:'Quantidade de UH Vigentes em Janeiro de 2023',[K(40)]:'Situação em Janeiro de 2023',[K(41)]:'Detalhamento em Janeiro de 2023',[K(42)]:'Situação Agrupada em Janeiro de 2023',[K(44)]:'Booleano: Vigente em Janeiro de 2023',[K(45)]:'Logradouro',[K(46)]:'Número do Imóvel',[K(47)]:'Complemento',[K(48)]:'Bairro',[K(49)]:'CEP',[K(50)]:'Latitude',[K(51)]:'Longitude'
+};
+function labelOguHeader(header) { return `${OGU_EMAIL_LABELS[header] || header} (${header})`; }
+function emailOguRule(rule) {
+  if (rule.includes('Entregues + distratadas + vigentes deve ser igual')) return `${labelOguHeader(K(23))} + ${labelOguHeader(K(24))} + ${labelOguHeader(K(25))} deve ser igual à ${labelOguHeader(K(22))}`;
+  if (rule.includes('Quantidade de UH Vigentes deve ser contratadas menos')) return `${labelOguHeader(K(25))} deve ser igual à ${labelOguHeader(K(22))} menos ${labelOguHeader(K(23))} e ${labelOguHeader(K(24))}`;
+  if (rule.includes('Valor Desembolsado excede o Valor Contratado Total')) return `${labelOguHeader(K(21))} excede ${labelOguHeader(K(20))}`;
+  if (rule.includes('Código da Operação AF')) return `Código fora do padrão do agente financeiro ou em branco (${K(6)})`;
+  if (rule.includes('Complemento preenchido exige')) return `${labelOguHeader(K(47))} preenchido exige ${labelOguHeader(K(45))} e ${labelOguHeader(K(46))}`;
+  const missing = rule.match(/^([^:]+): não pode estar vazio\.$/);
+  if (missing && OGU_EMAIL_LABELS[missing[1]]) return `${labelOguHeader(missing[1])} possui valores em branco`;
+  let text = rule;
+  Object.entries(OGU_EMAIL_LABELS).sort(([a],[b]) => b.length - a.length).forEach(([header, label]) => {
+    text = text.replaceAll(header, `${label} (${header})`);
+  });
+  const phrases = [['Valor Contratado Total',20],['Valor Desembolsado',21],['Quantidade de UH Contratadas',22],['Quantidade de UH Entregues',23],['Quantidade de UH Distratadas',24],['Quantidade de UH Vigentes',25],['Data da Contratação',16],['Data de Término',26],['Código IBGE',3],['Nome do Município',4],['Código da Operação SNH',5],['CNPJ',9],['Nome do Empreendimento',10],['Percentual de obra',17],['Sigla da UF',27],['Número do Imóvel',46],['Logradouro',45],['Bairro',48],['CEP',49]];
+  phrases.sort((a,b) => b[0].length - a[0].length).forEach(([phrase, number]) => {
+    const expression = new RegExp(`${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\s*\\()`, 'gi');
+    text = text.replace(expression, match => `${match} (${K(number)})`);
+  });
+  return text;
+}
+function emailTopic(rule) {
+  const text = emailOguRule(rule);
+  if (/Logradouro|Complemento|Bairro|Número do Imóvel|CEP|Latitude|Longitude/.test(text)) return 'Dados de endereço';
+  if (/UH|Entregues|Distratadas|Vigentes/.test(text)) return 'Unidades habitacionais';
+  if (/Valor|Desembolsado|Aporte/.test(text)) return 'Dados financeiros';
+  if (/Situação|Detalhamento|Vigente|Novo MCMV/.test(text)) return 'Situação do empreendimento';
+  if (/IBGE|Município|Sigla da UF|UF \(|Região/.test(text)) return 'Localização';
+  if (/Data/.test(text)) return 'Datas';
+  if (/Operação|CNPJ|Construtora|Empreendimento|Agente Financeiro/.test(text)) return 'Identificação do empreendimento';
+  return 'Demais validações';
+}
+function incidentSummary(logs, level) {
+  const counts = new Map();
+  logs.filter(log => log.level === level && !/possível erro de arredondamento|Valor médio por UH|número válido identificado com formato diferente/i.test(log.rule)).forEach(log => counts.set(log.rule, (counts.get(log.rule) || 0) + 1));
+  const themes = new Map();
+  counts.forEach((count, rule) => { const theme = emailTopic(rule); if (!themes.has(theme)) themes.set(theme, []); themes.get(theme).push([rule, count]); });
+  return Array.from(themes, ([theme, entries]) => [`${theme}:`, ...entries.sort((a,b) => b[1] - a[1]).map(([rule,count]) => `- ${emailOguRule(rule)}: ${count.toLocaleString('pt-BR')} ocorrência${count === 1 ? '' : 's'}.`)]).flat();
+}
+function renderIncident(logs) {
+  const impeditivos = incidentSummary(logs, IMP);
+  const atencoes = incidentSummary(logs, ACE);
+  const reference = referenceBase || 'não identificada';
+  const dataName = `Dados OGU Contratação - Data de Referência: ${reference}`;
+  const items = [...impeditivos, ...atencoes];
+  $('texto-incidente').value = `Assunto: Incidente de dados — ${dataName}\n\nPrezados(as),\n\n1. Informamos a identificação de possíveis incidentes de dados na base “${dataName}”, submetida à conferência.\n\n2. Durante as validações realizadas, foram observadas as discrepâncias abaixo.\n\n${items.length ? items.join('\n') : '- Não foram identificadas discrepâncias.'}\n\n3. Diante do exposto, solicitamos, por gentileza, que sejam verificadas as inconsistências apontadas e informado se decorrem de alguma particularidade na geração da base ou se devem ser corrigidas.\n\n4. Caso seja constatada alguma inconsistência, solicitamos, por gentileza, o encaminhamento de versão corrigida da base de dados.\n\nAtenciosamente,`;
+  $('incidente').classList.remove('hidden');
+  $('status-copia').textContent = '';
+}
+async function copyIncident() {
+  const field = $('texto-incidente');
+  try { await navigator.clipboard.writeText(field.value); }
+  catch (_) { field.select(); document.execCommand('copy'); }
+  $('status-copia').className = 'status ok';
+  $('status-copia').textContent = 'Texto copiado. Você pode ajustá-lo antes ou depois de colar no e-mail.';
+}
 function processFile() {
   const status=$('status'); if(!selectedFile)return; try { status.className='status'; status.textContent='Lendo e conferindo a planilha…'; const reader=new FileReader(); reader.onload=e=>{try { const wb=XLSX.read(e.target.result,{type:'array',cellDates:false,raw:true,cellStyles:true}); const ws=wb.Sheets[wb.SheetNames[0]]; const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true}); const headers=data[0]||[]; const missing=COLUMNS.filter(h=>!headers.includes(h)); if(missing.length)throw new Error(`A primeira aba não contém todos os cabeçalhos oficiais. Faltam: ${missing.join(', ')}.`); const ordered=data.slice(1).filter(r=>r.some(v=>!empty(v))).map(r=>COLUMNS.map(h=>r[headers.indexOf(h)]??'')); const logs=[],changes=[]; ordered.forEach((r,i)=>checkRow(r,i+2,logs,changes)); const clean=XLSX.utils.aoa_to_sheet([COLUMNS,...ordered]); clean['!cols']=COLUMNS.map(()=>({wch:18})); wb.Sheets[wb.SheetNames[0]]=clean; createLogSheets(wb,logs,changes); outputWorkbook=wb; outputName=selectedFile.name.replace(/\.(xlsx|xls)$/i,'')+'_conferido.xlsx'; const imp=logs.filter(x=>x.level===IMP).length, ace=logs.length-imp; $('linhas').textContent=ordered.length;$('impeditivos').textContent=imp;$('aceitaveis').textContent=ace;$('alteracoes').textContent=changes.length;$('resultado').classList.remove('hidden');$('baixar').classList.remove('hidden');status.className='status ok';status.textContent='Conferência concluída. Baixe o arquivo para acessar os relatórios.';}catch(err){status.className='status error';status.textContent=err.message||'Não foi possível processar o arquivo.';}}; reader.readAsArrayBuffer(selectedFile);}catch(err){status.className='status error';status.textContent=err.message;}
 }
-$('arquivo').addEventListener('change',e=>{selectedFile=e.target.files[0];referenceBase=undefined;$('arquivo-nome').textContent=selectedFile?selectedFile.name:'Nenhum arquivo selecionado.';$('processar').disabled=!selectedFile;$('resultado').classList.add('hidden');});
-$('processar').addEventListener('click',processFile); $('baixar').addEventListener('click',downloadReport);
+$('arquivo').addEventListener('change',e=>{selectedFile=e.target.files[0];referenceBase=undefined;$('arquivo-nome').textContent=selectedFile?selectedFile.name:'Nenhum arquivo selecionado.';$('processar').disabled=!selectedFile;$('resultado').classList.add('hidden');$('incidente').classList.add('hidden');});
+$('processar').addEventListener('click',processFile); $('baixar').addEventListener('click',downloadReport); $('copiar-incidente').addEventListener('click',copyIncident);
 
 // A rotina OGU recebe o CSV de origem e devolve somente as abas de análise.
 function detectDelimiter(text) {
@@ -353,6 +432,7 @@ function processFile() {
         $('alteracoes').textContent = changes.length.toLocaleString('pt-BR');
         $('resultado').classList.remove('hidden');
         $('baixar').classList.remove('hidden');
+        renderIncident(logs);
         status.className = 'status ok';
         status.textContent = 'Conferência concluída. O Excel contém somente as abas de análise.';
       };

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conferidor OGU</title>
     <link rel="stylesheet" href="ogu-styles.css" />
+    <style>.incident{margin-top:24px;padding-top:20px;border-top:1px solid #d6e0e6}.incident h3{margin:0 0 8px;color:#103b5d}.incident p{color:#4d5d68;line-height:1.5}.incident textarea{width:100%;min-height:330px;resize:vertical;padding:13px;border:1px solid #aebfc9;border-radius:7px;font:inherit;line-height:1.5;color:#1b2632;margin:8px 0 12px}</style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   </head>
   <body>
@@ -36,6 +37,13 @@
           <div><span id="alteracoes">0</span><small>correções identificadas</small></div>
         </div>
         <button id="baixar" type="button" class="secondary hidden">Baixar relatório Excel</button>
+        <section id="incidente" class="incident hidden">
+          <h3>Sugestão de e-mail — incidente de dados</h3>
+          <p>Revise o texto, remova os apontamentos que não devam ser encaminhados e copie-o para o novo e-mail.</p>
+          <textarea id="texto-incidente" aria-label="Sugestão de e-mail de incidente de dados"></textarea>
+          <button id="copiar-incidente" type="button" class="secondary">Copiar texto do e-mail</button>
+          <p id="status-copia" class="status" aria-live="polite"></p>
+        </section>
       </section>
 
       <section class="notice">
