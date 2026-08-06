@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conferidor FGTS — Protótipo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <p class="eyebrow">PROTÓTIPO · PROCESSAMENTO LOCAL</p>
+    <h1>Conferidor FGTS</h1>
+    <p class="intro">Envie o CSV de contratações. O arquivo original não é alterado nem enviado a um servidor; somente o relatório de inconsistências é gerado para download.</p>
+
+    <section class="card">
+      <label class="drop-zone" for="arquivo">
+        <span class="icon">↑</span>
+        <strong>Selecionar arquivo CSV</strong>
+        <span>CSV separado por ponto e vírgula</span>
+        <input id="arquivo" type="file" accept=".csv,text/csv" />
+      </label>
+      <p id="arquivo-nome" class="muted">Nenhum arquivo selecionado.</p>
+      <button id="processar" disabled>Conferir arquivo</button>
+      <p id="status" class="status" aria-live="polite"></p>
+      <div class="progress"><div id="barra"></div></div>
+    </section>
+
+    <section id="resultado" class="card hidden">
+      <h2>Resultado</h2>
+      <div class="metrics">
+        <div><strong id="registros">0</strong><span>registros analisados</span></div>
+        <div class="danger"><strong id="impeditivos">0</strong><span>erros impeditivos</span></div>
+        <div class="warning"><strong id="aceitaveis">0</strong><span>apontamentos de atenção</span></div>
+      </div>
+      <button id="baixar" class="secondary hidden">Baixar relatório Excel</button>
+      <div id="resumo" class="summary"></div>
+    </section>
+
+    <section class="notice">
+      <h2>O relatório contém</h2>
+      <p>O Excel contém as abas de resumo, detalhamento e regras aplicadas. Use o Código de Agrupamento SNH para localizar o registro no CSV original.</p>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="ibge-municipios.js"></script>
+  <script src="worker.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

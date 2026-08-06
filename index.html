@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conferidor de Empreendimentos</title>
+  <link rel="stylesheet" href="hub.css" />
+</head>
+<body>
+  <main class="hub">
+    <p class="eyebrow">MINISTÉRIO DAS CIDADES</p>
+    <h1>Conferidor de Empreendimentos</h1>
+    <p class="intro">Selecione o grupo de dados que deseja conferir.</p>
+    <fieldset class="selector">
+      <legend>Grupo de dados</legend>
+      <label><input type="radio" name="grupo" value="ogu" /> <span>OGU</span><small>Arquivo CSV de empreendimentos</small></label>
+      <label><input type="radio" name="grupo" value="fgts" checked /> <span>FGTS</span><small>Arquivo CSV de contratações</small></label>
+    </fieldset>
+    <p id="arquivo-origem" class="intro"><strong>Arquivo esperado:</strong> envie o CSV extraído de <code>arquivo_casa_civil_fgts_contratacao</code>.</p>
+  </main>
+  <iframe id="rotina" title="Rotina de conferência FGTS" src="fgts.html"></iframe>
+  <script src="hub.js"></script>
+</body>
+</html>
