@@ -1,20 +1,23 @@
-# Conferidor OGU
+# Conferidor de Empreendimentos
 
-Aplicação web estática para conferir e corrigir planilhas OGU de empreendimentos. Todo o processamento é local, no navegador.
-
-## Publicação no GitHub Pages
-
-1. Crie um repositório no GitHub e envie estes arquivos para a raiz.
-2. Em **Settings > Pages**, selecione **Deploy from a branch**, a branch `main` e a pasta `/(root)`.
-3. Abra o endereço gerado pelo GitHub Pages.
+Aplicação web estática para conferir arquivos de empreendimentos dos grupos **OGU** e **FGTS**, com processamento local no navegador.
 
 ## Uso
 
-Envie um `.xlsx` ou `.xls` contendo os 50 cabeçalhos oficiais na primeira linha da primeira aba. Ao concluir, baixe o arquivo: os dados são corrigidos quando a regra permitir e são acrescentadas as abas `LOG RESUMO`, `LOG DETALHAMENTO`, `ALTERAÇÕES` e `REGRAS`. No log detalhado, a identificação é feita pelo Código da Operação SNH.
+Publique os arquivos no GitHub Pages ou abra-os por um servidor HTTP local. Na página inicial, escolha o grupo de dados:
 
-## Observações
+- **OGU:** envie um arquivo `.xlsx` ou `.xls`. O arquivo resultante preserva os dados e inclui os relatórios de conferência.
+- **FGTS:** envie o CSV separado por ponto e vírgula. O relatório é gerado em Excel com as abas `LOG RESUMO`, `LOG DETALHAMENTO` e `REGRAS APLICADAS`.
 
-- O arquivo usa a biblioteca SheetJS carregada pelo CDN; por isso, é necessária conexão com a internet para abrir a página.
-- Linhas reportadas nos logs correspondem à linha da planilha Excel, incluindo o cabeçalho na linha 1.
-- O nº 43 não existe na especificação recebida. Por isso, há 50 cabeçalhos esperados, das colunas 01 a 51, exceto a 43.
-- A versão atual considera as novas classificações explícitas **ACEITÁVEL**, aceita variações apenas de caixa e acentuação nas listas indicadas e aplica as novas conversões de zero para vazio.
+Os dados enviados não são transferidos para servidor algum. A conferência ocorre no próprio navegador.
+
+## Rotina FGTS
+
+- Leitura incremental do CSV, adequada para arquivos grandes.
+- Barra de progresso baseada nos bytes efetivamente lidos.
+- Verificações de estrutura, chaves, datas, valores, listas permitidas e coerências de negócio.
+- O valor da compra deve ser maior ou igual ao valor financiado.
+- A base territorial do **IBGE — DTB 2024** está incorporada ao aplicativo. O sistema valida o código IBGE de seis dígitos usado no CSV, o município e a sigla da UF de forma integrada.
+- As ocorrências são classificadas como `IMPEDITIVO` ou `ATENÇÃO`.
+
+O detalhamento do FGTS usa o Código de Agrupamento SNH para localizar o registro correspondente no CSV original.
