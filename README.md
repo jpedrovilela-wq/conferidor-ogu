@@ -21,3 +21,6 @@ Os dados enviados não são transferidos para servidor algum. A conferência oco
 - As ocorrências são classificadas como `IMPEDITIVO` ou `ATENÇÃO`.
 
 O detalhamento do FGTS usa o Código de Agrupamento SNH para localizar o registro correspondente no CSV original.
+
+
+<!-- redeploy GitHub Pages 2026-08-07 -->
