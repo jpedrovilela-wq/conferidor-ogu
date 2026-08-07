@@ -3,10 +3,42 @@ const $=id=>document.getElementById(id);
 const localProcessor=window.onmessage;
 const nativePostMessage=window.postMessage.bind(window);
 const REGRAS_APLICADAS=[
-['1','Estrutura','O CSV deve conter os 23 cabeçalhos oficiais do FGTS.','IMPEDITIVO'],['2','01 e 02','Datas válidas; referência uniforme; geração não anterior à referência.','IMPEDITIVO'],['3','03','Código de Agrupamento SNH preenchido e único.','IMPEDITIVO'],['4','04','Código IBGE numérico com 6 dígitos.','IMPEDITIVO'],['5','06 a 08','Programa federal, modalidade e programa FGTS dentro das listas permitidas.','IMPEDITIVO'],['6','09, 20 e 21','Data de contratação em AAAAMM, compatível com ano/mês e não posterior à referência.','IMPEDITIVO'],['7','10 a 13','Valores financeiros numéricos e não negativos.','IMPEDITIVO'],['8','10 e 11','Valor da compra maior ou igual ao valor do financiamento.','IMPEDITIVO'],['9','14','Quantidade de contratos inteira e maior que zero.','IMPEDITIVO'],['10','15','Faixa dentro da lista permitida.','IMPEDITIVO'],['11','16','Tipo do imóvel: Novo ou Usado; vazio é apontamento de atenção.','ATENÇÃO'],['12','17 a 19 e 22','UF, estado, região e sigla da região compatíveis.','IMPEDITIVO'],['13','23','Fonte de recurso dentro da lista permitida.','IMPEDITIVO'],['14','06, 15 e 23','Faixa 3 FS exige fonte Fundo Social; demais faixas MCMV exigem programa federal MCMV ou CVA.','IMPEDITIVO']
+['1','Estrutura','O arquivo CSV ou TXT, separado por ponto e vírgula, deve conter todos os 23 cabeçalhos oficiais do FGTS.','IMPEDITIVO'],
+['2','01 — Data de Referência','Deve estar preenchida no formato DD/MM/AAAA e representar uma data existente no calendário.','IMPEDITIVO'],
+['3','01 — Data de Referência','Deve ser idêntica em todas as linhas do arquivo.','IMPEDITIVO'],
+['4','02 — Data de Geração','Deve estar preenchida no formato DD/MM/AAAA e representar uma data existente no calendário.','IMPEDITIVO'],
+['5','02 × 01 — Datas de Geração e Referência','A Data de Geração não pode ser anterior à Data de Referência.','IMPEDITIVO'],
+['6','03 — Código de Agrupamento SNH','Não pode estar vazio.','IMPEDITIVO'],
+['7','03 — Código de Agrupamento SNH','Deve ser único: não pode se repetir em outra linha do arquivo.','IMPEDITIVO'],
+['8','04 — Código IBGE','Deve conter exatamente 6 dígitos numéricos.','IMPEDITIVO'],
+['9','04 — Código IBGE','Deve existir na base territorial oficial DTB 2024 do IBGE.','IMPEDITIVO'],
+['10','04 × 05 — Código IBGE e Município','O Município deve corresponder ao nome oficial associado ao Código IBGE na DTB 2024.','IMPEDITIVO'],
+['11','04 × 17 — Código IBGE e Sigla da UF','A Sigla da UF deve corresponder à UF associada ao Código IBGE na DTB 2024.','IMPEDITIVO'],
+['12','06 — Programa federal','Deve ser um dos valores permitidos: CVA, Fora MCMV/CVA ou MCMV.','IMPEDITIVO'],
+['13','07 — Modalidade','Deve ser exatamente Financiamento.','IMPEDITIVO'],
+['14','08 — Programa FGTS','Deve pertencer à lista de programas FGTS permitidos.','IMPEDITIVO'],
+['15','09 — Data da Contratação','Deve estar no formato AAAAMM.','IMPEDITIVO'],
+['16','09 × 20 × 21 — Data, Ano e Mês da Contratação','Os 6 dígitos de Data da Contratação devem ser a concatenação do Ano (AAAA) e do Mês (MM) informados.','IMPEDITIVO'],
+['17','09 × 01 — Data da Contratação e Data de Referência','A Data da Contratação não pode ser posterior ao mês da Data de Referência.','IMPEDITIVO'],
+['18','10 — Valor da Compra','Deve ser numérico e maior ou igual a zero.','IMPEDITIVO'],
+['19','11 — Valor do Financiamento','Deve ser numérico e maior ou igual a zero.','IMPEDITIVO'],
+['20','12 — Subsídio FGTS','Deve ser numérico e maior ou igual a zero.','IMPEDITIVO'],
+['21','13 — Subsídio OGU','Deve ser numérico e maior ou igual a zero.','IMPEDITIVO'],
+['22','10 × 11 — Valor da Compra e Valor do Financiamento','O Valor da Compra deve ser maior ou igual ao Valor do Financiamento.','IMPEDITIVO'],
+['23','14 — Quantidade de contratos','Deve ser um número inteiro maior que zero.','IMPEDITIVO'],
+['24','15 — Faixa','Deve pertencer à lista de faixas permitidas.','IMPEDITIVO'],
+['25','16 — Tipo do imóvel','Quando informado, deve ser Novo ou Usado.','IMPEDITIVO'],
+['26','16 — Tipo do imóvel','Campo vazio é classificado como ATENÇÃO; deve ser preenchido quando a informação estiver disponível.','ATENÇÃO'],
+['27','18 — UF','Deve corresponder a uma das 27 unidades federativas permitidas.','IMPEDITIVO'],
+['28','17 × 18 — Sigla da UF e UF','A Sigla da UF deve corresponder ao estado informado.','IMPEDITIVO'],
+['29','18 × 19 — UF e Região','A Região deve corresponder ao estado informado.','IMPEDITIVO'],
+['30','18 × 22 — UF e Sigla da região','A sigla da região deve corresponder ao estado informado.','IMPEDITIVO'],
+['31','20 — Ano da contratação','Deve ter 4 dígitos e estar entre 2009 e o ano da Data de Referência.','IMPEDITIVO'],
+['32','21 — Mês da contratação','Deve ser numérico e estar entre 1 e 12.','IMPEDITIVO'],
+['33','23 — Fonte de recurso','Deve ser um dos valores permitidos: FGTS, Fundo Social ou SBPE.','IMPEDITIVO'],
+['34','15 × 23 — Faixa e Fonte de recurso','Quando a Faixa for Faixa 3 FS, a Fonte de recurso deve ser Fundo Social.','IMPEDITIVO'],
+['35','06 × 15 — Programa federal e Faixa','Para faixas MCMV, exceto Faixa 3 FS, Fora MCMV e Fora MCMV/CVA, o Programa federal deve ser MCMV ou CVA.','IMPEDITIVO']
 ];
-
-REGRAS_APLICADAS.push(['15','04, 05 e 17','Código IBGE, município e sigla da UF devem corresponder à base territorial oficial DTB 2024 do IBGE.','IMPEDITIVO']);
 function csvEscape(value){const text=String(value??'');return /[";\n\r]/.test(text)?`"${text.replaceAll('"','""')}"`:text;}
 function csvText(rows){return `\uFEFF${rows.map(row=>row.map(csvEscape).join(';')).join('\r\n')}`;}
 function crc32(bytes){let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let i=0;i<8;i++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return(crc^0xffffffff)>>>0;}
@@ -24,7 +56,7 @@ if(message.type==='complete'){reportRows=message.rows;reportReference=message.re
 if(message.type==='error'){$('processar').disabled=false;$('status').className='status error';$('status').textContent=message.message;restorePostMessage();}}
 function restorePostMessage(){if(usingLocalProcessor){window.postMessage=nativePostMessage;usingLocalProcessor=false;}}
 function startProcessing(file){try{if(!worker){worker=new Worker('worker.js');worker.onmessage=event=>receiveMessage(event.data);worker.onerror=()=>startLocalProcessing(file);}worker.postMessage({type:'process',file});}catch(error){startLocalProcessing(file);}}
-function startLocalProcessing(file){if(usingLocalProcessor)return;usingLocalProcessor=true;window.postMessage=message=>receiveMessage(message);$('status').textContent='Carregando e analisando localmente… 0%';Promise.resolve(localProcessor({data:{type:'process',file}})).catch(error=>receiveMessage({type:'error',message:error.message||'Não foi possível processar o CSV.'}));}
+function startLocalProcessing(file){if(usingLocalProcessor)return;usingLocalProcessor=true;window.postMessage=message=>receiveMessage(message);$('status').textContent='Carregando e analisando localmente… 0%';Promise.resolve(localProcessor({data:{type:'process',file}})).catch(error=>receiveMessage({type:'error',message:error.message||'Não foi possível processar o arquivo CSV ou TXT.'}));}
 
 $('arquivo').addEventListener('change',event=>{selectedFile=event.target.files[0];reportReference='';$('arquivo-nome').textContent=selectedFile?`${selectedFile.name} — ${(selectedFile.size/1024/1024).toFixed(1)} MB`:'Nenhum arquivo selecionado.';$('processar').disabled=!selectedFile;$('resultado').classList.add('hidden');$('incidente').classList.add('hidden');$('status').textContent='';$('barra').style.width='0';});
 $('processar').addEventListener('click',()=>{if(!selectedFile)return;reportRows=[];$('processar').disabled=true;$('barra').style.width='0';$('status').className='status';$('status').textContent='Carregando o arquivo e iniciando a conferência… 0%';startProcessing(selectedFile);});
