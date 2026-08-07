@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conferidor Reforma Casa Brasil</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>.incident{margin-top:24px;padding-top:20px;border-top:1px solid #d5e0e5}.incident h3{margin:0 0 8px;color:#173c53}.incident p{color:#53636d;line-height:1.5}.incident textarea{width:100%;min-height:330px;resize:vertical;padding:13px;border:1px solid #aebfc9;border-radius:7px;font:inherit;line-height:1.5;color:#152b3a;margin:8px 0 12px}</style>
+</head>
+<body>
+  <main class="container">
+    <p class="eyebrow">PROCESSAMENTO LOCAL</p>
+    <h1>Conferidor Reforma Casa Brasil</h1>
+    <p class="intro">Envie o arquivo de contratações em CSV ou TXT, separado por ponto e vírgula. O arquivo não é enviado a servidor; será gerado apenas o relatório de inconsistências.</p>
+    <section class="card">
+      <label class="drop-zone" for="arquivo"><span class="icon">↑</span><strong>Selecionar arquivo CSV ou TXT</strong><span>Arquivo separado por ponto e vírgula</span><input id="arquivo" type="file" accept=".csv,.txt,text/csv,text/plain" /></label>
+      <p id="arquivo-nome" class="muted">Nenhum arquivo selecionado.</p>
+      <button id="processar" disabled>Conferir arquivo</button>
+      <p id="status" class="status" aria-live="polite"></p><div class="progress"><div id="barra"></div></div>
+    </section>
+    <section id="resultado" class="card hidden">
+      <h2>Resultado</h2>
+      <div class="metrics"><div><strong id="registros">0</strong><span>registros analisados</span></div><div class="danger"><strong id="impeditivos">0</strong><span>erros impeditivos</span></div><div class="warning"><strong id="atencoes">0</strong><span>apontamentos de atenção</span></div></div>
+      <button id="baixar" class="secondary hidden">Baixar relatório Excel</button><div id="resumo" class="summary"></div>
+      <section id="incidente" class="incident hidden"><h3>Sugestão de e-mail — incidente de dados</h3><p>Revise o texto, remova apontamentos que não devam ser encaminhados e copie-o para o novo e-mail.</p><textarea id="texto-incidente" aria-label="Sugestão de e-mail de incidente de dados"></textarea><button id="copiar-incidente" class="secondary" type="button">Copiar texto do e-mail</button><p id="status-copia" class="status" aria-live="polite"></p></section>
+    </section>
+    <section class="notice"><h2>O relatório contém</h2><p>O Excel contém as abas LOG RESUMO, LOG DETALHAMENTO e REGRAS APLICADAS. Use o número da linha para localizar a ocorrência no arquivo original.</p></section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="ibge-municipios.js"></script><script src="rcb-worker.js"></script><script src="rcb-app.js"></script>
+</body>
+</html>
