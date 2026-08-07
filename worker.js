@@ -18,7 +18,7 @@ function number(value) {
   let normalized = text;
   if (comma >= 0 && dot >= 0) normalized = comma > dot ? text.replace(/\./g, '').replace(',', '.') : text.replace(/,/g, '');
   else if (comma >= 0) normalized = text.replace(',', '.');
-  else if ((text.match(/\./g) || []).length > 1) normalized = text.replace(/\./g, '');
+  else if (/^-?\d{1,3}(?:\.\d{3})+$/.test(text)) normalized = text.replace(/\./g, '');
   const result = Number(normalized);
   return Number.isFinite(result) ? result : NaN;
 }
@@ -63,7 +63,7 @@ self.onmessage = async event => {
     const check = cells => {
       records++;
       const get = header => cells[headerMap[header]] ?? '';
-      const ref = date(get(HEADERS[0])), generation = date(get(HEADERS[1])), code = clean(get(HEADERS[2])), ibge = clean(get(HEADERS[3]));
+      const ref = date(get(HEADERS[0])), generation = date(get(HEADERS[1])), code = clean(get(HEADERS[2])), ibge = clean(get(HEADERS[3])).replace(/\D/g, '');
       const contract = monthCode(get(HEADERS[8])), year = clean(get(HEADERS[19])), month = clean(get(HEADERS[20]));
 
       if (!ref) add(cells, 'Data de Referência deve estar no formato DD/MM/AAAA.', 'IMPEDITIVO', get(HEADERS[0]), 'Data inválida.');
