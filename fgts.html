@@ -11,14 +11,14 @@
   <main class="container">
     <p class="eyebrow">PROTÓTIPO · PROCESSAMENTO LOCAL</p>
     <h1>Conferidor FGTS</h1>
-    <p class="intro">Envie o CSV de contratações. O arquivo original não é alterado nem enviado a um servidor; somente o relatório de inconsistências é gerado para download.</p>
+    <p class="intro">Envie o arquivo de contratações em CSV ou TXT, separado por ponto e vírgula. O arquivo original não é alterado nem enviado a um servidor; somente o relatório de inconsistências é gerado para download.</p>
 
     <section class="card">
       <label class="drop-zone" for="arquivo">
         <span class="icon">↑</span>
-        <strong>Selecionar arquivo CSV</strong>
-        <span>CSV separado por ponto e vírgula</span>
-        <input id="arquivo" type="file" accept=".csv,text/csv" />
+        <strong>Selecionar arquivo CSV ou TXT</strong>
+        <span>Arquivo separado por ponto e vírgula</span>
+        <input id="arquivo" type="file" accept=".csv,.txt,text/csv,text/plain" />
       </label>
       <p id="arquivo-nome" class="muted">Nenhum arquivo selecionado.</p>
       <button id="processar" disabled>Conferir arquivo</button>
