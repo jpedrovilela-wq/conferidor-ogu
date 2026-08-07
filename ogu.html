@@ -11,17 +11,17 @@
   <body>
     <main class="container">
       <section class="hero">
-        <p class="eyebrow">MINISTÉRIO DAS CIDADES</p>
+        <p class="eyebrow">Coordenação de Planejamento - DPP - SNH</p>
         <h1>Conferidor OGU</h1>
-        <p>Envie o CSV de empreendimentos. A conferência ocorre no navegador e nenhum dado é enviado a um servidor.</p>
+        <p>Envie o arquivo CSV ou TXT de empreendimentos. A conferência ocorre no navegador e nenhum dado é enviado a um servidor.</p>
       </section>
 
       <section class="card">
         <label class="drop-zone" for="arquivo">
           <span class="drop-icon">↑</span>
-          <strong>Selecione o arquivo CSV</strong>
-          <span>Formato aceito: .csv, separado por ponto e vírgula ou vírgula</span>
-          <input id="arquivo" type="file" accept=".csv,text/csv" />
+          <strong>Selecione o arquivo CSV ou TXT</strong>
+          <span>Formatos aceitos: .csv ou .txt, separados por ponto e vírgula ou vírgula</span>
+          <input id="arquivo" type="file" accept=".csv,.txt,text/csv,text/plain" />
         </label>
         <p id="arquivo-nome" class="file-name" aria-live="polite">Nenhum arquivo selecionado.</p>
         <button id="processar" type="button" disabled>Conferir e gerar relatório</button>
@@ -48,7 +48,7 @@
 
       <section class="notice">
         <h2>O arquivo devolvido</h2>
-        <p>O relatório não reproduz os dados do CSV original. Ele contém somente as abas <strong>LOG RESUMO</strong>, <strong>LOG DETALHAMENTO</strong>, <strong>ALTERAÇÕES</strong> e <strong>REGRAS</strong>.</p>
+        <p>O relatório não reproduz os dados do arquivo original. Ele contém somente as abas <strong>LOG RESUMO</strong>, <strong>LOG DETALHAMENTO</strong>, <strong>ALTERAÇÕES</strong> e <strong>REGRAS</strong>.</p>
       </section>
     </main>
     <script src="ogu-app.js"></script>

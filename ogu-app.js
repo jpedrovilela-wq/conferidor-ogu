@@ -338,7 +338,7 @@ function processFile() {
 $('arquivo').addEventListener('change',e=>{selectedFile=e.target.files[0];referenceBase=undefined;$('arquivo-nome').textContent=selectedFile?selectedFile.name:'Nenhum arquivo selecionado.';$('processar').disabled=!selectedFile;$('resultado').classList.add('hidden');$('incidente').classList.add('hidden');});
 $('processar').addEventListener('click',processFile); $('baixar').addEventListener('click',downloadReport); $('copiar-incidente').addEventListener('click',copyIncident);
 
-// A rotina OGU recebe o CSV de origem e devolve somente as abas de análise.
+// A rotina OGU recebe o CSV ou TXT de origem e devolve somente as abas de análise.
 function detectDelimiter(text) {
   const firstLine = text.replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || '';
   return (firstLine.match(/;/g) || []).length >= (firstLine.match(/,/g) || []).length ? ';' : ',';
@@ -395,7 +395,7 @@ function processFile() {
   const status = $('status');
   if (!selectedFile) return;
   status.className = 'status';
-  status.textContent = 'Lendo e conferindo o CSV…';
+  status.textContent = 'Lendo e conferindo o arquivo…';
   const reader = new FileReader();
   reader.onload = event => {
     try {
@@ -405,7 +405,7 @@ function processFile() {
       const data = parseOguCsv(event.target.result);
       const headers = data[0] || [];
       const missing = COLUMNS.filter(header => !headers.includes(header));
-      if (missing.length) throw new Error(`O CSV não contém todos os cabeçalhos oficiais. Faltam: ${missing.join(', ')}.`);
+      if (missing.length) throw new Error(`O arquivo não contém todos os cabeçalhos oficiais. Faltam: ${missing.join(', ')}.`);
       const numericHeaders = new Set(NUM.filter(column => column !== 49).map(K));
       const numericColumns = new Set(NUM.map(K));
       const formatWarnings = [];
@@ -424,7 +424,7 @@ function processFile() {
         reportLogs = logs;
         reportChanges = changes;
         outputWorkbook = null;
-        outputName = selectedFile.name.replace(/\.csv$/i, '') + '_relatorio_ogu.xlsx';
+        outputName = selectedFile.name.replace(/\.(csv|txt)$/i, '') + '_relatorio_ogu.xlsx';
         const impeditivos = logs.reduce((total, log) => total + (log.level === IMP ? 1 : 0), 0);
         $('linhas').textContent = ordered.length.toLocaleString('pt-BR');
         $('impeditivos').textContent = impeditivos.toLocaleString('pt-BR');
@@ -450,7 +450,7 @@ function processFile() {
           } else finish();
         } catch (error) {
           status.className = 'status error';
-          status.textContent = error.message || 'Não foi possível concluir a conferência do CSV.';
+          status.textContent = error.message || 'Não foi possível concluir a conferência do arquivo.';
         }
       };
       const processRows = () => {
@@ -463,18 +463,18 @@ function processFile() {
           } else processWarnings();
         } catch (error) {
           status.className = 'status error';
-          status.textContent = error.message || 'Não foi possível concluir a conferência do CSV.';
+          status.textContent = error.message || 'Não foi possível concluir a conferência do arquivo.';
         }
       };
       setTimeout(processRows, 0);
     } catch (error) {
       status.className = 'status error';
-      status.textContent = error.message || 'Não foi possível processar o CSV.';
+      status.textContent = error.message || 'Não foi possível processar o arquivo.';
     }
   };
   reader.onerror = () => {
     status.className = 'status error';
-    status.textContent = 'Não foi possível ler o CSV selecionado.';
+    status.textContent = 'Não foi possível ler o arquivo selecionado.';
   };
   reader.readAsText(selectedFile, 'utf-8');
 }
