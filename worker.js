@@ -152,9 +152,9 @@ self.onmessage = async event => {
     }
     parser.push(decoder.decode());
     parser.end();
-    if (!headerRead) throw new Error('Arquivo CSV vazio.');
+    if (!headerRead) throw new Error('Arquivo CSV ou TXT vazio.');
     self.postMessage({ type: 'complete', records, impeditivos, aceitaveis: atencoes, summary, rows, reference: firstReference || '' });
   } catch (error) {
-    self.postMessage({ type: 'error', message: error.message || 'Não foi possível processar o CSV.' });
+    self.postMessage({ type: 'error', message: error.message || 'Não foi possível processar o arquivo CSV ou TXT.' });
   }
 };
