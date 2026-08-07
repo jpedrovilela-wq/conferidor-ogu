@@ -10,6 +10,7 @@ const clean = value => String(value ?? '').trim();
 const norm = value => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 const municipalityNorm = value => norm(value).replace(/[^A-Z0-9]+/g, ' ').trim();
 const valid = (value, options) => options.includes(norm(value));
+let txtWithThousandsSeparator = false;
 
 function number(value) {
   const text = clean(value).replace(/\s/g, '');
@@ -18,7 +19,7 @@ function number(value) {
   let normalized = text;
   if (comma >= 0 && dot >= 0) normalized = comma > dot ? text.replace(/\./g, '').replace(',', '.') : text.replace(/,/g, '');
   else if (comma >= 0) normalized = text.replace(',', '.');
-  else if (/^-?\d{1,3}(?:\.\d{3})+$/.test(text)) normalized = text.replace(/\./g, '');
+  else if (txtWithThousandsSeparator && /^-?\d{1,3}(?:\.\d{3})+$/.test(text)) normalized = text.replace(/\./g, '');
   const result = Number(normalized);
   return Number.isFinite(result) ? result : NaN;
 }
@@ -52,6 +53,7 @@ self.onmessage = async event => {
   if (event.data.type !== 'process') return;
   try {
     const file = event.data.file;
+    txtWithThousandsSeparator = /\.txt$/i.test(file.name || '');
     let headerMap, firstReference, records = 0, impeditivos = 0, atencoes = 0;
     const seen = new Set(), rows = [], summary = {};
     const add = (cells, rule, level, actual, justification) => {
